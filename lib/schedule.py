@@ -145,8 +145,6 @@ def getSchedule(url: str) -> list[Class]:
 def searchSchedule(query:str):
     url = "https://schedule-of.mirea.ru/schedule/api/search?limit=100&match="
 
-    query = "БББО"
-
     response = requests.get(url + query)
     if response.status_code != 200:
         print(f"Error: {response.status_code}")
