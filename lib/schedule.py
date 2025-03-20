@@ -60,7 +60,7 @@ def parse_campus_and_room(location: str) -> tuple[Campus, str]:
             return campus, room
     raise ValueError(f"Не удалось определить кампус для: {location}")
   
-def getSchedule(url: str) -> list[Class]:
+def getClasses(url: str) -> list[Class]:
     """
     Читает ical файл и формирует список объектов Class.
     """
@@ -97,6 +97,9 @@ def getSchedule(url: str) -> list[Class]:
                 # Delete last if empty
                 if groups[-1] == "":
                     groups = groups[:-1]
+                for i, group in enumerate(groups):
+                    if group.find(" п/г") != -1:
+                        groups[i] = group[:group.find(" п/г") - 1].strip()
             except:
                 teacher = teacher.replace("Преподаватель: ", "").strip() if teacher else None
                 groups = None
@@ -125,8 +128,6 @@ def getSchedule(url: str) -> list[Class]:
                 subgroup = int(subject[subject.find("п/г") - 2].strip())
                 subject = subject[:subject.find("п/г") - 2].strip()
 
-
-            print(subject, class_type, campus, room, teacher, groups, sep="\t")
             # Создание объекта Class
             cls = Class(
                 subject=subject,
@@ -156,19 +157,22 @@ def searchSchedule(query:str):
         print("No classes found")
         return
 
-    print(type(response))
+    results = []
     for i in response:
         id = i.get("id")
         name = i.get("targetTitle")
+        fullname = i.get("fullTitle")
         link = i.get("iCalLink")
+        results.append({"id":id, "name":name, "fullname":fullname, "link":link})
 
-        print(f"\nID: {id}\tName: {name}\nLink: {link}\n")
+    return results
 
-
+# test
 if __name__ == "__main__":
     # Получаем расписание
-    schedule = getSchedule("https://schedule-of.mirea.ru/schedule/api/ical/1/4730")
+    schedules = searchSchedule("олег ")
 
-    # Вывод
-    for cls in schedule:
-        print(cls)
+    for schedule in schedules:
+        for cls in getClasses(schedule["link"]):
+            print(cls)
+        print("\n\n\n")
